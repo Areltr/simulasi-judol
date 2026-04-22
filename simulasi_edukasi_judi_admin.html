@@ -1,0 +1,554 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0f; --surface: #111118; --surface2: #1a1a24; --border: rgba(255,255,255,0.08);
+    --text: #f0eee8; --muted: #888880; --gold: #c9a84c; --gold-dim: rgba(201,168,76,0.15);
+    --danger: #e05252; --success: #4caf80; --accent: #7c6df0;
+    --admin: #d44fa0; --admin-dim: rgba(212,79,160,0.12);
+    --font-head: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); }
+  .app { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  .header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 0.5px solid var(--border); }
+  .edu-badge { display: inline-block; background: rgba(124,109,240,0.15); border: 0.5px solid rgba(124,109,240,0.4); color: #a89ff4; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; }
+  .header h1 { font-family: var(--font-head); font-size: 22px; font-weight: 800; color: var(--gold); margin-bottom: 4px; }
+  .header p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .warning-banner { background: rgba(224,82,82,0.08); border: 0.5px solid rgba(224,82,82,0.3); border-radius: 12px; padding: 0.75rem 1.25rem; margin-bottom: 1rem; text-align: center; }
+  .warning-banner p { font-size: 12px; color: var(--danger); line-height: 1.5; }
+  .warning-banner strong { display: block; font-size: 13px; margin-bottom: 2px; }
+
+  .balance-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 1.1rem 1.25rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+  .balance-label { font-size: 11px; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .balance-amount { font-family: var(--font-head); font-size: 26px; font-weight: 700; color: var(--text); }
+  .balance-amount.danger { color: var(--danger); }
+  .balance-amount.warn { color: var(--gold); }
+  .reset-btn { background: var(--surface2); border: 0.5px solid var(--border); color: var(--muted); font-size: 12px; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-family: var(--font-body); transition: all 0.2s; }
+  .reset-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+  .stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 0.65rem 1rem; }
+  .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .stat-value { font-family: var(--font-head); font-size: 15px; font-weight: 700; }
+  .stat-value.loss { color: var(--danger); } .stat-value.win { color: var(--success); } .stat-value.neutral { color: var(--text); }
+
+  .tabs { display: flex; gap: 5px; margin-bottom: 1rem; background: var(--surface); border-radius: 12px; padding: 4px; border: 0.5px solid var(--border); }
+  .tab { flex: 1; text-align: center; padding: 7px 4px; border-radius: 9px; font-size: 12px; cursor: pointer; font-family: var(--font-body); border: none; background: transparent; color: var(--muted); transition: all 0.2s; }
+  .tab.active { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border); }
+  .tab.admin-tab.active { color: var(--admin); border-color: rgba(212,79,160,0.3); }
+
+  .game-area { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; }
+  .slot-display { display: flex; gap: 10px; justify-content: center; margin: 1.25rem 0; }
+  .slot-reel { width: 76px; height: 76px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 34px; transition: all 0.3s; }
+  .slot-reel.spinning { animation: spin-blur 0.1s linear infinite; }
+  @keyframes spin-blur { 0%{transform:translateY(-4px)}50%{transform:translateY(4px)}100%{transform:translateY(-4px)} }
+  .slot-reel.winner { border-color: var(--gold); background: var(--gold-dim); }
+  .bet-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+  .bet-row label { font-size: 13px; color: var(--muted); min-width: 58px; }
+  .bet-row input[type=range] { flex: 1; }
+  .bet-amount { font-family: var(--font-head); font-weight: 700; color: var(--gold); min-width: 90px; text-align: right; font-size: 13px; }
+  .spin-btn { width: 100%; padding: 13px; background: var(--gold); color: #1a1200; font-family: var(--font-head); font-size: 15px; font-weight: 800; border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; letter-spacing: 0.04em; }
+  .spin-btn:hover { background: #e0bc5a; transform: translateY(-1px); }
+  .spin-btn:active { transform: translateY(0) scale(0.99); }
+  .spin-btn:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; transform: none; }
+  .result-msg { text-align: center; padding: 9px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-top: 0.75rem; min-height: 38px; display: flex; align-items: center; justify-content: center; }
+  .result-msg.win-msg { background: rgba(76,175,128,0.12); color: var(--success); border: 0.5px solid rgba(76,175,128,0.25); }
+  .result-msg.lose-msg { background: rgba(224,82,82,0.12); color: var(--danger); border: 0.5px solid rgba(224,82,82,0.25); }
+  .rtp-info { display: flex; align-items: flex-start; gap: 8px; background: var(--surface2); border-radius: 10px; padding: 9px 13px; margin-top: 0.75rem; }
+  .rtp-info p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .rtp-info strong { color: var(--danger); }
+
+  .honeypot-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(76,175,128,0.12); border: 0.5px solid rgba(76,175,128,0.35); color: var(--success); font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+  .honeypot-badge.off { background: var(--surface2); border-color: var(--border); color: var(--muted); }
+
+  .history-list { max-height: 220px; overflow-y: auto; }
+  .history-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; }
+  .history-item:last-child { border-bottom: none; }
+  .history-item .h-game { color: var(--muted); }
+  .history-item .h-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
+  .history-item .h-badge.honey { background: rgba(76,175,128,0.15); color: var(--success); }
+  .history-item .h-result.pos { color: var(--success); }
+  .history-item .h-result.neg { color: var(--danger); }
+
+  .edu-panel { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; }
+  .edu-panel h2 { font-family: var(--font-head); font-size: 16px; font-weight: 700; margin-bottom: 0.85rem; color: var(--gold); }
+  .fact-card { background: var(--surface2); border-radius: 10px; padding: 0.85rem; margin-bottom: 8px; border-left: 3px solid var(--danger); }
+  .fact-card h3 { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .fact-card p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .fact-card.warn { border-left-color: var(--gold); }
+  .fact-card.info { border-left-color: var(--accent); }
+  .prob-bar { margin-bottom: 8px; }
+  .prob-bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+  .prob-bar-label span:first-child { color: var(--muted); }
+  .prob-bar-label span:last-child { color: var(--text); font-weight: 500; }
+  .prob-track { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .prob-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+  .prob-fill.red { background: var(--danger); }
+  .prob-fill.gold { background: var(--gold); }
+  .prob-fill.green { background: var(--success); }
+  .addiction-meter { margin: 0.75rem 0; }
+  .meter-label { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .meter-track { height: 10px; background: var(--surface2); border-radius: 5px; overflow: hidden; }
+  .meter-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #4caf80, #c9a84c, #e05252); transition: width 0.4s ease; }
+
+  /* ADMIN PANEL */
+  .admin-panel { background: var(--surface); border: 0.5px solid rgba(212,79,160,0.25); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; }
+  .admin-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 0.5px solid rgba(212,79,160,0.15); }
+  .admin-header h2 { font-family: var(--font-head); font-size: 16px; font-weight: 700; color: var(--admin); }
+  .admin-badge { font-size: 10px; background: var(--admin-dim); border: 0.5px solid rgba(212,79,160,0.3); color: var(--admin); padding: 2px 8px; border-radius: 20px; }
+  .admin-section { margin-bottom: 1.25rem; }
+  .admin-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; }
+  .admin-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .admin-row label { font-size: 13px; color: var(--text); min-width: 120px; }
+  .admin-row input[type=range] { flex: 1; accent-color: var(--admin); }
+  .admin-row .val { font-family: var(--font-head); font-weight: 700; color: var(--admin); min-width: 45px; text-align: right; font-size: 13px; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; }
+  .toggle-row .t-info h4 { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .toggle-row .t-info p { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--surface); border: 0.5px solid var(--border); border-radius: 22px; transition: 0.3s; }
+  .toggle-slider:before { content: ''; position: absolute; width: 16px; height: 16px; left: 2px; bottom: 2px; background: var(--muted); border-radius: 50%; transition: 0.3s; }
+  .toggle input:checked + .toggle-slider { background: var(--admin-dim); border-color: rgba(212,79,160,0.4); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(18px); background: var(--admin); }
+  .admin-info { background: rgba(212,79,160,0.06); border: 0.5px solid rgba(212,79,160,0.2); border-radius: 10px; padding: 10px 13px; margin-top: 1rem; }
+  .admin-info p { font-size: 12px; color: rgba(212,79,160,0.8); line-height: 1.6; }
+  .admin-info strong { color: var(--admin); }
+  .live-odds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .odds-card { background: var(--surface2); border-radius: 8px; padding: 8px 12px; }
+  .odds-card .oc-label { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .odds-card .oc-val { font-size: 14px; font-weight: 700; font-family: var(--font-head); }
+  .oc-val.red { color: var(--danger); } .oc-val.green { color: var(--success); } .oc-val.gold { color: var(--gold); } .oc-val.pink { color: var(--admin); }
+  .honeypot-section { border: 0.5px solid rgba(76,175,128,0.2); background: rgba(76,175,128,0.04); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+  .honeypot-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--success); margin-bottom: 10px; }
+  .honey-stat { display: flex; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 0.5px solid var(--border); color: var(--muted); }
+  .honey-stat:last-child { border-bottom: none; }
+  .honey-stat span:last-child { color: var(--text); font-weight: 500; }
+</style>
+
+<div class="app">
+  <div class="header">
+    <div class="edu-badge">Simulasi Edukasi — Uang Virtual</div>
+    <h1>Bahaya Judi Online</h1>
+    <p>Simulasi ini menunjukkan cara kerja judi online dan dampaknya. Tidak ada uang nyata.</p>
+  </div>
+
+  <div class="warning-banner">
+    <p><strong>Peringatan Penting</strong>Judi online ilegal di Indonesia. Simulasi ini hanya untuk pembelajaran tentang mekanisme manipulasi platform judi.</p>
+  </div>
+
+  <div class="balance-card">
+    <div>
+      <div class="balance-label">Saldo Virtual <span class="honeypot-badge off" id="honey-badge">Mode Baru: OFF</span></div>
+      <div class="balance-amount" id="balance-display">Rp 1.000.000</div>
+    </div>
+    <button class="reset-btn" onclick="resetGame()">Mulai Ulang</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total Menang</div>
+      <div class="stat-value win" id="total-win">Rp 0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Kalah</div>
+      <div class="stat-value loss" id="total-lose">Rp 0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Putaran</div>
+      <div class="stat-value neutral" id="round-count">0</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('slot', this)">Slot</button>
+    <button class="tab" onclick="switchTab('history', this)">Riwayat</button>
+    <button class="tab" onclick="switchTab('edukasi', this)">Edukasi</button>
+    <button class="tab admin-tab" onclick="switchTab('admin', this)">Admin</button>
+  </div>
+
+  <!-- SLOT TAB -->
+  <div id="tab-slot">
+    <div class="game-area">
+      <div class="slot-display">
+        <div class="slot-reel" id="reel0">🎰</div>
+        <div class="slot-reel" id="reel1">🎰</div>
+        <div class="slot-reel" id="reel2">🎰</div>
+      </div>
+      <div class="bet-row">
+        <label>Taruhan</label>
+        <input type="range" min="10000" max="200000" step="10000" value="50000" id="bet-slider" oninput="updateBet(this.value)" />
+        <span class="bet-amount" id="bet-display">Rp 50.000</span>
+      </div>
+      <button class="spin-btn" id="spin-btn" onclick="spin()">PUTAR</button>
+      <div class="result-msg" id="result-msg"></div>
+      <div class="rtp-info">
+        <p>RTP efektif saat ini: <strong id="rtp-display">85%</strong>. Artinya kasino mengambil <strong id="house-cut">15%</strong> dari setiap taruhan dalam jangka panjang.</p>
+      </div>
+    </div>
+    <div class="edu-panel">
+      <h2>Meter Risiko Kecanduan</h2>
+      <div class="meter-label">Berdasarkan jumlah putaran: <span id="addiction-level">Rendah</span></div>
+      <div class="addiction-meter">
+        <div class="meter-track"><div class="meter-fill" id="addiction-bar" style="width:0%"></div></div>
+      </div>
+      <div class="fact-card warn">
+        <h3>Efek "Hampir Menang"</h3>
+        <p>Otak merespons "hampir menang" sama seperti menang sungguhan. Slot dirancang untuk memicu ini sesering mungkin.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" style="display:none">
+    <div class="game-area">
+      <div class="history-list" id="history-list">
+        <p style="color:var(--muted);font-size:13px;text-align:center;padding:2rem 0">Belum ada riwayat. Mainkan slot terlebih dahulu.</p>
+      </div>
+    </div>
+    <div class="edu-panel">
+      <h2>Apa yang Kamu Lihat?</h2>
+      <div class="fact-card">
+        <h3>Kerugian tersembunyi</h3>
+        <p>Meskipun ada kemenangan awal (mode honeypot), perhatikan pola setelah itu: kerugian selalu lebih besar secara kumulatif.</p>
+      </div>
+      <div class="fact-card info">
+        <h3>Tanda honeypot di riwayat</h3>
+        <p>Putaran dengan label hijau "HP" menunjukkan hasil yang dimanipulasi admin untuk membuat pemain baru merasa beruntung dan terus bermain.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDUKASI TAB -->
+  <div id="tab-edukasi" style="display:none">
+    <div class="edu-panel">
+      <h2>Peluang Sebenarnya</h2>
+      <div class="prob-bar">
+        <div class="prob-bar-label"><span>Jackpot (3 simbol sama)</span><span>2.8%</span></div>
+        <div class="prob-track"><div class="prob-fill green" style="width:2.8%"></div></div>
+      </div>
+      <div class="prob-bar">
+        <div class="prob-bar-label"><span>Menang kecil</span><span>22%</span></div>
+        <div class="prob-track"><div class="prob-fill gold" style="width:22%"></div></div>
+      </div>
+      <div class="prob-bar">
+        <div class="prob-bar-label"><span>Kalah total</span><span>75.2%</span></div>
+        <div class="prob-track"><div class="prob-fill red" style="width:75.2%"></div></div>
+      </div>
+    </div>
+    <div class="edu-panel">
+      <h2>Fakta Mengejutkan</h2>
+      <div class="fact-card">
+        <h3>Mode "Pemain Baru Selalu Menang" (Honeypot)</h3>
+        <p>Platform judi nyata sering menggunakan taktik ini: pemain baru diberi kemenangan palsu untuk membangun kepercayaan dan kecanduan sebelum algoritma diubah ke mode normal.</p>
+      </div>
+      <div class="fact-card warn">
+        <h3>Manipulasi RTP oleh admin</h3>
+        <p>Di platform ilegal, admin bisa mengatur persentase kemenangan kapan saja. RTP tinggi saat promosi, lalu diturunkan saat pemain sudah kecanduan.</p>
+      </div>
+      <div class="fact-card info">
+        <h3>House edge selalu menang</h3>
+        <p>Dengan RTP di bawah 100%, semakin lama bermain, semakin pasti pemain akan rugi. Matematika tidak bisa dikalahkan.</p>
+      </div>
+      <div class="fact-card">
+        <h3>Bantuan tersedia</h3>
+        <p>Into The Light Indonesia: 021-7884-5555 | Yayasan Pulih: 021-788-42580</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN TAB -->
+  <div id="tab-admin" style="display:none">
+    <div class="admin-panel">
+      <div class="admin-header">
+        <h2>Panel Admin</h2>
+        <span class="admin-badge">EDUKASI ONLY</span>
+      </div>
+
+      <div class="honeypot-section">
+        <h3>Mode Honeypot (Pemain Baru)</h3>
+        <div class="toggle-row">
+          <div class="t-info">
+            <h4>Aktifkan Mode Pemain Baru Selalu Menang</h4>
+            <p>Selama N putaran pertama, hasil slot selalu jackpot untuk memancing kecanduan</p>
+          </div>
+          <label class="toggle"><input type="checkbox" id="honey-toggle" onchange="toggleHoneypot(this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="admin-row" style="margin-top:8px">
+          <label>Durasi honeypot</label>
+          <input type="range" min="1" max="20" step="1" value="5" id="honey-rounds" oninput="updateHoneyRounds(this.value)" />
+          <span class="val" id="honey-rounds-val">5 putaran</span>
+        </div>
+        <div class="honey-stat" style="margin-top:8px"><span>Putaran honeypot tersisa</span><span id="honey-remaining">—</span></div>
+        <div class="honey-stat"><span>Total kemenangan saat honeypot</span><span id="honey-winnings">Rp 0</span></div>
+        <div class="honey-stat"><span>Putaran setelah honeypot</span><span id="post-honey-rounds">—</span></div>
+      </div>
+
+      <div class="admin-section">
+        <h3>Kontrol RTP & Peluang</h3>
+        <div class="admin-row">
+          <label>Win ratio</label>
+          <input type="range" min="1" max="80" step="1" value="25" id="win-ratio" oninput="updateWinRatio(this.value)" />
+          <span class="val" id="win-ratio-val">25%</span>
+        </div>
+        <div class="admin-row">
+          <label>Jackpot ratio</label>
+          <input type="range" min="0" max="30" step="1" value="3" id="jackpot-ratio" oninput="updateJackpotRatio(this.value)" />
+          <span class="val" id="jackpot-ratio-val">3%</span>
+        </div>
+        <div class="admin-row">
+          <label>Multiplier jackpot</label>
+          <input type="range" min="2" max="50" step="1" value="10" id="jackpot-mult" oninput="updateJackpotMult(this.value)" />
+          <span class="val" id="jackpot-mult-val">×10</span>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>Statistik Live</h3>
+        <div class="live-odds">
+          <div class="odds-card"><div class="oc-label">Peluang menang</div><div class="oc-val green" id="live-win">25%</div></div>
+          <div class="odds-card"><div class="oc-label">Peluang kalah</div><div class="oc-val red" id="live-lose">75%</div></div>
+          <div class="odds-card"><div class="oc-label">RTP efektif</div><div class="oc-val gold" id="live-rtp">~85%</div></div>
+          <div class="odds-card"><div class="oc-label">House edge</div><div class="oc-val pink" id="live-edge">~15%</div></div>
+        </div>
+      </div>
+
+      <div class="admin-info">
+        <p><strong>Kenapa ini penting secara edukasi?</strong> Platform judi ilegal nyata memiliki panel seperti ini. Admin bisa mengubah peluang kapan saja tanpa sepengetahuan pemain. Ini menunjukkan bahwa judi online bukan "permainan fair" — melainkan sistem yang dirancang untuk mengambil uang pemain secara bertahap.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SYMBOLS = ['🍒','🍋','🍊','⭐','💎','🎰'];
+
+  let balance = 1000000;
+  let bet = 50000;
+  let totalWin = 0;
+  let totalLose = 0;
+  let rounds = 0;
+  let history = [];
+  let spinning = false;
+
+  let winRatio = 25;
+  let jackpotRatio = 3;
+  let jackpotMult = 10;
+
+  let honeypotActive = false;
+  let honeypotRounds = 5;
+  let honeypotWinnings = 0;
+  let postHoneyRounds = 0;
+  let isInHoneypot = false;
+
+  function fmt(n) { return 'Rp ' + Math.abs(n).toLocaleString('id-ID'); }
+
+  function updateUI() {
+    const bd = document.getElementById('balance-display');
+    bd.textContent = fmt(balance);
+    bd.className = 'balance-amount' + (balance < 200000 ? ' danger' : balance < 500000 ? ' warn' : '');
+    document.getElementById('total-win').textContent = fmt(totalWin);
+    document.getElementById('total-lose').textContent = fmt(totalLose);
+    document.getElementById('round-count').textContent = rounds;
+    const pct = Math.min(rounds * 3, 100);
+    document.getElementById('addiction-bar').style.width = pct + '%';
+    document.getElementById('addiction-level').textContent = pct < 20 ? 'Rendah' : pct < 50 ? 'Sedang' : pct < 80 ? 'Tinggi' : 'Sangat Tinggi';
+    document.getElementById('spin-btn').disabled = balance < bet || balance <= 0;
+    const rtp = Math.round(winRatio * 2.5 + jackpotRatio * jackpotMult * 0.8);
+    const clampedRtp = Math.min(Math.max(rtp, 30), 99);
+    document.getElementById('rtp-display').textContent = clampedRtp + '%';
+    document.getElementById('house-cut').textContent = (100 - clampedRtp) + '%';
+    updateHoneypotStats();
+  }
+
+  function updateHoneypotStats() {
+    const remaining = honeypotActive ? Math.max(0, honeypotRounds - rounds) : '—';
+    document.getElementById('honey-remaining').textContent = honeypotActive ? remaining + ' putaran' : '—';
+    document.getElementById('honey-winnings').textContent = fmt(honeypotWinnings);
+    document.getElementById('post-honey-rounds').textContent = honeypotActive && rounds > honeypotRounds ? (rounds - honeypotRounds) + ' putaran' : '—';
+    const badge = document.getElementById('honey-badge');
+    const hp = honeypotActive && rounds < honeypotRounds;
+    badge.textContent = hp ? 'Mode Baru: ON' : honeypotActive && rounds >= honeypotRounds ? 'Mode Baru: Selesai' : 'Mode Baru: OFF';
+    badge.className = 'honeypot-badge' + (hp ? '' : ' off');
+    isInHoneypot = honeypotActive && rounds < honeypotRounds;
+  }
+
+  function updateBet(v) {
+    bet = parseInt(v);
+    document.getElementById('bet-display').textContent = fmt(bet);
+    document.getElementById('spin-btn').disabled = balance < bet;
+  }
+
+  function updateWinRatio(v) {
+    winRatio = parseInt(v);
+    document.getElementById('win-ratio-val').textContent = v + '%';
+    updateLiveOdds();
+  }
+  function updateJackpotRatio(v) {
+    jackpotRatio = parseInt(v);
+    document.getElementById('jackpot-ratio-val').textContent = v + '%';
+    updateLiveOdds();
+  }
+  function updateJackpotMult(v) {
+    jackpotMult = parseInt(v);
+    document.getElementById('jackpot-mult-val').textContent = '×' + v;
+    updateLiveOdds();
+  }
+  function updateHoneyRounds(v) {
+    honeypotRounds = parseInt(v);
+    document.getElementById('honey-rounds-val').textContent = v + ' putaran';
+    updateHoneypotStats();
+  }
+  function toggleHoneypot(checked) {
+    honeypotActive = checked;
+    updateHoneypotStats();
+  }
+  function updateLiveOdds() {
+    const lose = Math.max(0, 100 - winRatio - jackpotRatio);
+    const rtp = Math.round(winRatio * 2.5 + jackpotRatio * jackpotMult * 0.8);
+    const clampedRtp = Math.min(Math.max(rtp, 30), 99);
+    document.getElementById('live-win').textContent = winRatio + '%';
+    document.getElementById('live-lose').textContent = lose + '%';
+    document.getElementById('live-rtp').textContent = '~' + clampedRtp + '%';
+    document.getElementById('live-edge').textContent = '~' + (100 - clampedRtp) + '%';
+    document.getElementById('rtp-display').textContent = clampedRtp + '%';
+    document.getElementById('house-cut').textContent = (100 - clampedRtp) + '%';
+  }
+
+  function getHoneypotSymbol() {
+    return SYMBOLS[Math.floor(Math.random() * (SYMBOLS.length - 1)) + 1];
+  }
+
+  function spin() {
+    if (spinning || balance < bet) return;
+    spinning = true;
+    balance -= bet;
+    rounds++;
+    document.getElementById('result-msg').textContent = '';
+    document.getElementById('result-msg').className = 'result-msg';
+
+    for (let i = 0; i < 3; i++) {
+      document.getElementById('reel'+i).classList.add('spinning');
+      document.getElementById('reel'+i).classList.remove('winner');
+    }
+
+    const thisIsHoneypot = honeypotActive && rounds <= honeypotRounds;
+
+    let forcedSym = null;
+    if (thisIsHoneypot) {
+      forcedSym = getHoneypotSymbol();
+    }
+
+    setTimeout(() => {
+      let results = [];
+      if (thisIsHoneypot) {
+        results = [forcedSym, forcedSym, forcedSym];
+      } else {
+        const roll = Math.random() * 100;
+        if (roll < jackpotRatio) {
+          const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+          results = [sym, sym, sym];
+        } else if (roll < jackpotRatio + winRatio) {
+          const sym1 = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+          const sym2 = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+          results = [sym1, sym1, sym2];
+        } else {
+          do {
+            results = Array.from({length:3}, () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+          } while (results[0] === results[1] && results[1] === results[2]);
+        }
+      }
+
+      for (let i = 0; i < 3; i++) {
+        setTimeout((function(idx) {
+          return function() {
+            document.getElementById('reel'+idx).textContent = results[idx];
+            document.getElementById('reel'+idx).classList.remove('spinning');
+            if (idx === 2) setTimeout(() => resolveResult(results, thisIsHoneypot), 200);
+          };
+        })(i), i * 280);
+      }
+    }, 300);
+  }
+
+  function resolveResult(results, wasHoneypot) {
+    const msg = document.getElementById('result-msg');
+    let winAmount = 0;
+    let isWin = false;
+    const PAYOUTS = {'🍒':1.5,'🍋':2,'🍊':2.5,'⭐':4,'💎':8,'🎰':jackpotMult};
+
+    if (results[0] === results[1] && results[1] === results[2]) {
+      const mult = PAYOUTS[results[0]] || jackpotMult;
+      winAmount = Math.round(bet * mult);
+      balance += winAmount;
+      totalWin += winAmount;
+      isWin = true;
+      if (wasHoneypot) honeypotWinnings += winAmount;
+      for (let i = 0; i < 3; i++) document.getElementById('reel'+i).classList.add('winner');
+      msg.className = 'result-msg win-msg';
+      msg.textContent = (wasHoneypot ? '[Mode Baru] ' : '') + 'Menang! +' + fmt(winAmount) + ' (×' + mult.toFixed(1) + ')';
+    } else if (results[0] === results[1] || results[1] === results[2]) {
+      winAmount = Math.round(bet * 1.3);
+      balance += winAmount;
+      totalWin += winAmount;
+      isWin = true;
+      msg.className = 'result-msg win-msg';
+      msg.textContent = '2 simbol sama! +' + fmt(winAmount);
+    } else {
+      totalLose += bet;
+      msg.className = 'result-msg lose-msg';
+      const tips = ['Kalah lagi. House selalu menang.', 'Saldo terus berkurang...', 'Peluang tidak berubah setiap putaran.', 'Ini yang disebut ketagihan tanpa sadar.'];
+      msg.textContent = '-' + fmt(bet) + ' — ' + tips[rounds % tips.length];
+    }
+
+    if (!wasHoneypot && honeypotActive && rounds > honeypotRounds) postHoneyRounds++;
+
+    history.unshift({ round: rounds, bet, symbols: results.join(' '), result: isWin ? winAmount : -bet, honeypot: wasHoneypot });
+    renderHistory();
+    spinning = false;
+    updateUI();
+
+    if (balance <= 0) {
+      setTimeout(() => {
+        msg.className = 'result-msg lose-msg';
+        msg.textContent = 'Saldo habis! Inilah yang terjadi pada pemain judi nyata.';
+      }, 300);
+    }
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    if (!history.length) return;
+    list.innerHTML = history.slice(0, 30).map(h => `
+      <div class="history-item">
+        <span class="h-game">#${h.round} ${h.symbols}${h.honeypot ? '<span class="h-badge honey">HP</span>' : ''}</span>
+        <span class="h-result ${h.result > 0 ? 'pos' : 'neg'}">${h.result > 0 ? '+' : ''}${fmt(h.result)}</span>
+      </div>`).join('');
+  }
+
+  function resetGame() {
+    balance = 1000000; totalWin = 0; totalLose = 0; rounds = 0; history = [];
+    honeypotWinnings = 0; postHoneyRounds = 0;
+    document.getElementById('result-msg').textContent = '';
+    document.getElementById('result-msg').className = 'result-msg';
+    for (let i = 0; i < 3; i++) {
+      document.getElementById('reel'+i).textContent = '🎰';
+      document.getElementById('reel'+i).classList.remove('winner', 'spinning');
+    }
+    document.getElementById('history-list').innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:2rem 0">Belum ada riwayat. Mainkan slot terlebih dahulu.</p>';
+    updateUI();
+  }
+
+  function switchTab(name, btn) {
+    ['slot','history','edukasi','admin'].forEach(t => {
+      document.getElementById('tab-'+t).style.display = t === name ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  updateUI();
+  updateLiveOdds();
+</script>
